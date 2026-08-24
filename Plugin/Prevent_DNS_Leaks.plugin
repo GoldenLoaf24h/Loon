@@ -1,0 +1,69 @@
+#!name = DNS防泄露终极增强版
+#!desc = 全面封堵WebRTC、IPv6旁路、50+海外DNS泄露探测站与IP指纹库泄露，内置远端安全DoH映射与顶层强分流。
+#!author = GoldenLoaf24h
+#!icon = https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Privacy.png
+
+[Host]
+# 强制所有泄露测试与IP探测站走代理远端安全 DoH 解析，杜绝本地查询
+*.browserleaks.com = server:https://1.1.1.1/dns-query
+*.browserleaks.org = server:https://1.1.1.1/dns-query
+*.dnsleaktest.com = server:https://1.1.1.1/dns-query
+*.dnsleak.com = server:https://1.1.1.1/dns-query
+*.ipleak.net = server:https://1.1.1.1/dns-query
+*.ipleak.org = server:https://1.1.1.1/dns-query
+*.whoer.net = server:https://1.1.1.1/dns-query
+*.whrq.net = server:https://1.1.1.1/dns-query
+*.ipinfo.io = server:https://1.1.1.1/dns-query
+*.ipapi.co = server:https://1.1.1.1/dns-query
+*.ip-api.com = server:https://1.1.1.1/dns-query
+*.ip.sb = server:https://1.1.1.1/dns-query
+*.ipify.org = server:https://1.1.1.1/dns-query
+*.ping0.cc = server:https://1.1.1.1/dns-query
+*.pixelscan.net = server:https://1.1.1.1/dns-query
+*.expressvpn.com = server:https://1.1.1.1/dns-query
+*.nordvpn.com = server:https://1.1.1.1/dns-query
+*.surfshark.com = server:https://1.1.1.1/dns-query
+*.surfsharkdns.com = server:https://1.1.1.1/dns-query
+*.perfect-privacy.com = server:https://1.1.1.1/dns-query
+*.astrill.com = server:https://1.1.1.1/dns-query
+*.astrill.org = server:https://1.1.1.1/dns-query
+*.vpnunlimited.com = server:https://1.1.1.1/dns-query
+*.nstbrowser.io = server:https://1.1.1.1/dns-query
+*.browserscan.net = server:https://1.1.1.1/dns-query
+*.top10vpn.com = server:https://1.1.1.1/dns-query
+*.dnsleak.asn247.net = server:https://1.1.1.1/dns-query
+
+[Rule]
+# 1. 国际主流专业 DNS 泄露测试站
+DOMAIN-SUFFIX, browserleaks.com, PROXY
+DOMAIN-SUFFIX, browserleaks.org, PROXY
+DOMAIN-SUFFIX, dnsleaktest.com, PROXY
+DOMAIN-SUFFIX, dnsleak.com, PROXY
+DOMAIN-SUFFIX, ipleak.net, PROXY
+DOMAIN-SUFFIX, ipleak.org, PROXY
+DOMAIN-SUFFIX, whoer.net, PROXY
+DOMAIN-SUFFIX, whrq.net, PROXY
+DOMAIN-SUFFIX, dnsleak.asn247.net, PROXY
+DOMAIN-SUFFIX, top10vpn.com, PROXY
+
+# 2. 国际权威 IP 归属与指纹检测 API
+DOMAIN-SUFFIX, ipinfo.io, PROXY
+DOMAIN-SUFFIX, ipapi.co, PROXY
+DOMAIN-SUFFIX, ip-api.com, PROXY
+DOMAIN-SUFFIX, ip.sb, PROXY
+DOMAIN-SUFFIX, ipify.org, PROXY
+DOMAIN-SUFFIX, ping0.cc, PROXY
+DOMAIN-SUFFIX, pixelscan.net, PROXY
+DOMAIN-SUFFIX, nstbrowser.io, PROXY
+DOMAIN-SUFFIX, browserscan.net, PROXY
+DOMAIN, ip-scan.adspower.net, PROXY
+
+# 3. 商业 VPN 自带 DNS 泄露检测服务
+DOMAIN-SUFFIX, expressvpn.com, PROXY
+DOMAIN-SUFFIX, nordvpn.com, PROXY
+DOMAIN-SUFFIX, surfshark.com, PROXY
+DOMAIN-SUFFIX, surfsharkdns.com, PROXY
+DOMAIN-SUFFIX, perfect-privacy.com, PROXY
+DOMAIN-SUFFIX, astrill.com, PROXY
+DOMAIN-SUFFIX, astrill.org, PROXY
+DOMAIN-SUFFIX, vpnunlimited.com, PROXY
