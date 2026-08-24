@@ -1,0 +1,14 @@
+#!name = 知乎网页增强
+#!desc = 基于 XIU2 知乎增强深度移植：彻底去除 iOS 移动端“打开 App”弹窗与呼起条、解除强制登录限制与滚动锁定、去除页面广告，并实现外链精准解码直达（解决 Safari 无效链接报错）。
+#!author = GoldenLoaf24h
+#!icon = https://raw.githubusercontent.com/Koolson/Qure/master/IconSet/Color/Zhihu.png
+
+[Script]
+# 1. 知乎外链精准安全解码直达（解决 URL 编码导致 Safari 报错“无效链接”问题）
+http-request ^https?:\/\/link\.zhihu\.com\/\?target= script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/zhihu_redirect.js, tag=知乎外链解码直达
+
+# 2. 拦截知乎网页响应，注入去“打开App”弹窗、去登录遮罩、解除滚动限制与去广告代码
+http-response ^https?:\/\/(www\.|zhuanlan\.)?zhihu\.com(\/.*)?$ script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/zhihu_web_enhanced.js, requires-body=true, max-size=0, tag=知乎网页端增强
+
+[MITM]
+hostname = link.zhihu.com, www.zhihu.com, zhuanlan.zhihu.com, zhihu.com
