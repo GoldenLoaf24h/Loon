@@ -1,14 +1,12 @@
 ﻿#!name = 哔哩哔哩增强 (All-in-One)
 #!desc = 融合最新 ProtoBuf 去广告、空降助手 (SponsorBlock)、直播间净化、原生无损 UI 自定义、CDN 播放加速与全区解锁
-#!openUrl = https://apps.apple.com/app/id736536022
 #!author = kokoryh, VirgilClyne, GoldenLoaf24h
 #!homepage = https://github.com/GoldenLoaf24h/Loon
 #!icon = https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Bilibili.png
-#!tag = Bilibili, Enhancement
-#!system = iOS, iPadOS
-#!system_version = 15
+#!system = iOS,iPadOS
+#!system_version = 15.0
 #!loon_version = 3.3.8(932)
-#!date = 2026-08-25
+#!tag = 哔哩哔哩,去广告,增强
 
 [Argument]
 # === 1. 界面与 UI 自定义 ===
@@ -62,19 +60,19 @@ AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYW
 ^https://app.bilibili.com/x/v2/account/myinfo? response-body-json-jq '.data.vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end'
 
 [Script]
-# === 1. 动态无损 UI 自定义 (实时过滤真实下行数据，杜绝网络错误与白屏) ===
-http-response ^https?://app.bili(bili.com|api.net)/x/resource/show/tab/v2? requires-body=1, script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/bilibili_ui.js, tag=BiliBili.UI.tab, argument="Home.Tab={Home.Tab}&Home.Tab_default={Home.Tab_default}&Bottom={Bottom}&Home.Top={Home.Top}"
-http-response ^https?://app.bili(bili.com|api.net)/x/v2/account/mine(/ipad)?? requires-body=1, script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/bilibili_ui.js, tag=BiliBili.UI.mine
+# === 1. 动态无损 UI 自定义 (符合 Loon 官方 argument=[{...}] 规范) ===
+http-response ^https?://app.bili(bili.com|api.net)/x/resource/show/tab/v2? requires-body=true, script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/bilibili_ui.js, tag=BiliBili.UI.tab, argument=[{Home.Tab},{Home.Tab_default},{Bottom},{Home.Top}]
+http-response ^https?://app.bili(bili.com|api.net)/x/v2/account/mine(/ipad)?? requires-body=true, script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/bilibili_ui.js, tag=BiliBili.UI.mine
 
 # === 2. 播放与 CDN 重定向 (PCDN -> 官方高速 CDN) ===
-http-request ^https?://.+.bilivideo.com/upgcxcode/ script-path=https://github.com/BiliUniverse/Redirect/releases/download/v0.2.20/request.bundle.js, tag=BiliBili.Redirect.CDN, argument="Host.PCDN={Host.PCDN}&Storage=Argument&LogLevel={LogLevel}"
-http-request ^https?://[adbcefxy0-9]+.mcdn.bilivideo.cn(:(8000|8082|4483|9102))?/ script-path=https://github.com/BiliUniverse/Redirect/releases/download/v0.2.20/request.bundle.js, tag=BiliBili.Redirect.MCDN, argument="Host.MCDN={Host.PCDN}&Storage=Argument&LogLevel={LogLevel}"
+http-request ^https?://.+.bilivideo.com/upgcxcode/ script-path=https://github.com/BiliUniverse/Redirect/releases/download/v0.2.20/request.bundle.js, tag=BiliBili.Redirect.CDN, argument=[Host.PCDN={Host.PCDN}&Storage=Argument&LogLevel={LogLevel}]
+http-request ^https?://[adbcefxy0-9]+.mcdn.bilivideo.cn(:(8000|8082|4483|9102))?/ script-path=https://github.com/BiliUniverse/Redirect/releases/download/v0.2.20/request.bundle.js, tag=BiliBili.Redirect.MCDN, argument=[Host.MCDN={Host.PCDN}&Storage=Argument&LogLevel={LogLevel}]
 
 # === 3. 全球换线与番剧解锁 (Global) ===
-http-request ^https?://www.bilibili.com/bangumi/play/(ss|ep)d+/? requires-body=1, script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.bangumi.play, argument="Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}"
-http-request ^https?://api.bili(bili.com|api.net)/pgc/player/(api|web)/playurl(/html5)?? script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.player.playurl, argument="Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}"
-http-request ^https?://search.bilibili.com/all? script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.search.html, argument="Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}"
-http-request ^https?://app.bili(bili.com|api.net)/x/v2/search(/type)?? script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.search.app, argument="Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}"
+http-request ^https?://www.bilibili.com/bangumi/play/(ss|ep)d+/? requires-body=true, script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.bangumi.play, argument=[Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}]
+http-request ^https?://api.bili(bili.com|api.net)/pgc/player/(api|web)/playurl(/html5)?? script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.player.playurl, argument=[Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}]
+http-request ^https?://search.bilibili.com/all? script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.search.html, argument=[Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}]
+http-request ^https?://app.bili(bili.com|api.net)/x/v2/search(/type)?? script-path=https://github.com/BiliUniverse/Global/releases/download/v0.8.21/request.bundle.js, tag=BiliBili.Global.search.app, argument=[Locales={Locales}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Storage=Argument&LogLevel={LogLevel}]
 
 # === 4. 可莉/Sparkle 核心去广告与空降助手 (实时跟随 master 分支) ===
 http-request ^https://(grpc.biliapi.net|app.bilibili.com)/bilibili.community\.service\.dm\.v1\.DM/DmSegMobile$ script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.request.js, argument=[{LogLevel}], requires-body=true, binary-body-mode=true, timeout=10, enable={sponsorBlock}, tag=bilibili.airborne
@@ -83,6 +81,6 @@ http-response ^https://api.live.bilibili.com/xlive/(app-interface/v2/index/feed|
 http-response ^https://www.bilibili.com/blackboard/era/.+.html? script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/webpage.bilibili.js, requires-body=true, tag=bilibili.webpage
 http-response ^https://(grpc.biliapi.net|app.bilibili.com)/bilibili.(app.(show.v1.Popular/Index|dynamic.v2.Dynamic/DynAll|view(unite)?.v1.View/(View|ViewProgress|RelatesFeed|AIRelateAsync)|playurl.v1.PlayURL/PlayView|playerunite.v1.Player/PlayViewUnite)|polymer.app\.search\.v1\.Search/SearchAll|community.service.dm.v1.DM/DmView|main.community.reply.v1.Reply/MainList|pgc.gateway.player.v2.PlayURL/PlayView)$ script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.response.js, argument=[{displayUpList}, {purifyComment}, {sponsorBlock}, {LogLevel}], requires-body=true, binary-body-mode=true, tag=bilibili.protobuf
 
-[MitM]
+[Mitm]
 hostname = grpc.biliapi.net, app.bilibili.com, api.bilibili.com, api.live.bilibili.com, www.bilibili.com, line3-h5-mobile-api.biligame.com, search.bilibili.com, *.mcdn.bilivideo.cn, upos-sz-mirror*bstar1.bilivideo.com, upos-*-mirrorakam.akamaized.net
 h2 = true

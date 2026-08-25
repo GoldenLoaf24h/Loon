@@ -1,8 +1,28 @@
 ﻿/**
  * Bilibili UI Customization Script for Loon
- * Non-destructive filtering & customization based on live server response.
- * Compatible with modern Bilibili iOS App (no white screen / network error).
+ * Strictly compliant with Loon Plugin & Script specifications.
  */
+
+const $ = {
+    get: (key) => {
+        if (typeof $argument === "object" && $argument !== null) {
+            if ($argument[key] !== undefined) return $argument[key];
+            let cleanKey = key.replace(/[^a-zA-Z0-9]/g, "");
+            for (let k of Object.keys($argument)) {
+                if (k.replace(/[^a-zA-Z0-9]/g, "") === cleanKey) return $argument[k];
+            }
+        }
+        if (typeof $argument === "string" && $argument.length > 0) {
+            let params = {};
+            $argument.split("&").forEach(pair => {
+                let [k, v] = pair.split("=");
+                if (k && v !== undefined) params[k] = decodeURIComponent(v.replace(/\"/g, ""));
+            });
+            return params[key];
+        }
+        return undefined;
+    }
+};
 
 let body = $response.body;
 if (!body) {
@@ -10,39 +30,28 @@ if (!body) {
 } else {
     try {
         let obj = JSON.parse(body);
-        let args = {};
-
-        // Parse Loon $argument
-        if (typeof $argument === "string" && $argument.length > 0) {
-            $argument.split("&").forEach(item => {
-                let [k, v] = item.split("=");
-                if (k && v !== undefined) {
-                    args[k] = decodeURIComponent(v.replace(/\"/g, ""));
-                }
-            });
-        }
-
         let url = $request.url;
 
         // 1. Home / Bottom Tabs: /x/resource/show/tab/v2
         if (url.includes("/x/resource/show/tab/v2") && obj.data) {
             // Filter Top Tabs
-            if (args["Home.Tab"] && Array.isArray(obj.data.tab)) {
-                let allowedTabs = args["Home.Tab"].split(",").map(s => s.trim().toLowerCase());
-                let defaultTab = (args["Home.Tab_default"] || "推荐tab").trim().toLowerCase();
-                
-                // If allowedTabs specified, filter tab items
+            let homeTabVal = $.get("Home.Tab") || "直播,推荐,热门,动画,影视";
+            let defaultTabVal = ($.get("Home.Tab_default") || "推荐").trim().toLowerCase();
+
+            if (Array.isArray(obj.data.tab)) {
+                let allowedTabs = homeTabVal.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
                 let filteredTabs = obj.data.tab.filter(t => {
                     let tabId = (t.tab_id || "").toLowerCase();
                     let name = (t.name || "").toLowerCase();
-                    return allowedTabs.some(allowed => allowed.includes(tabId) || tabId.includes(allowed) || allowed.includes(name));
+                    return allowedTabs.some(allowed => allowed.includes(tabId) || tabId.includes(allowed) || allowed.includes(name) || name.includes(allowed));
                 });
 
                 if (filteredTabs.length > 0) {
                     filteredTabs.forEach((t, index) => {
                         t.pos = index + 1;
                         let tabId = (t.tab_id || "").toLowerCase();
-                        if (tabId.includes(defaultTab) || defaultTab.includes(tabId)) {
+                        let name = (t.name || "").toLowerCase();
+                        if (tabId.includes(defaultTabVal) || defaultTabVal.includes(tabId) || name.includes(defaultTabVal) || defaultTabVal.includes(name)) {
                             t.default_selected = 1;
                         } else {
                             delete t.default_selected;
@@ -53,13 +62,13 @@ if (!body) {
             }
 
             // Filter Bottom Navigation
-            if (args["Bottom"] && Array.isArray(obj.data.bottom)) {
-                let allowedBottoms = args["Bottom"].split(",").map(s => s.trim().toLowerCase());
+            let bottomVal = $.get("Bottom") || "home,dynamic,我的Bottom";
+            if (Array.isArray(obj.data.bottom)) {
+                let allowedBottoms = bottomVal.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
                 let filteredBottom = obj.data.bottom.filter(b => {
                     let tabId = (b.tab_id || "").toLowerCase();
                     let name = (b.name || "").toLowerCase();
-                    // Remove vip/mall if not in allowedBottoms
-                    return allowedBottoms.some(allowed => allowed.includes(tabId) || tabId.includes(allowed) || allowed.includes(name));
+                    return allowedBottoms.some(allowed => allowed.includes(tabId) || tabId.includes(allowed) || allowed.includes(name) || name.includes(allowed));
                 });
 
                 if (filteredBottom.length > 0) {
@@ -71,19 +80,19 @@ if (!body) {
             }
 
             // Filter Top Left / Top Right
-            if (args["Home.Top"] && Array.isArray(obj.data.top)) {
-                let allowedTop = args["Home.Top"].split(",").map(s => s.trim().toLowerCase());
+            let topVal = $.get("Home.Top") || "消息Top";
+            if (Array.isArray(obj.data.top)) {
+                let allowedTop = topVal.split(",").map(s => s.trim().toLowerCase()).filter(Boolean);
                 obj.data.top = obj.data.top.filter(t => {
                     let tabId = (t.tab_id || "").toLowerCase();
                     let name = (t.name || "").toLowerCase();
-                    return allowedTop.some(allowed => allowed.includes(tabId) || tabId.includes(allowed) || allowed.includes(name));
+                    return allowedTop.some(allowed => allowed.includes(tabId) || tabId.includes(allowed) || allowed.includes(name) || name.includes(allowed));
                 });
             }
         }
 
         // 2. Mine Page: /x/v2/account/mine
         if (url.includes("/x/v2/account/mine") && obj.data) {
-            // Clean banners, unnecessary sections
             delete obj.data.answer;
             delete obj.data.live_tip;
             delete obj.data.vip_section;
