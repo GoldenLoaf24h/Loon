@@ -1,5 +1,5 @@
 ﻿#!name = 哔哩哔哩增强 (All-in-One)
-#!desc = 融合最新 ProtoBuf 纯净去广告、空降助手 (SponsorBlock)、直播间净化、原生极速 UI 精简与港澳台全区番剧解锁
+#!desc = 融合最新 ProtoBuf 纯净去广告、空降助手 (SponsorBlock)、直播间净化、原生极速 UI 精简（双底栏纯净版）与港澳台全区番剧解锁
 #!author = kokoryh, VirgilClyne, GoldenLoaf24h
 #!homepage = https://github.com/GoldenLoaf24h/Loon
 #!icon = https://raw.githubusercontent.com/luestr/IconResource/main/App_icon/120px/Bilibili.png
@@ -49,9 +49,9 @@ AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYW
 ^https://api.bilibili.com/pgc/view/v2/app/season? response-body-json-jq 'del(.data.payment)'
 ^https://api.bilibili.com/pgc/page/channel? response-body-json-jq '.data.modules |= map(select(.type != "TIP") | if .type == "BANNER" then .module_data.items |= map(select(.url | startswith("https://www.bilibili.com/blackboard/era/") | not)) else . end)'
 
-# UI 精简与底栏自定义 (剔除会员购/发布，保留首页、动态、我的)
+# UI 精简与底栏自定义 (剔除会员购、发布、动态，仅保留极简：首页、我的)
 ^https://app.bilibili.com/x/resource/show/skin? response-body-json-del data.common_equip
-^https://app.bilibili.com/x/resource/show/tab/v2? response-body-json-jq jq-path="https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/jq/bilibili.tab.jq"
+^https://app.bilibili.com/x/resource/show/tab/v2? response-body-json-jq jq-path="https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/bilibili_tab.jq"
 ^https://app.bilibili.com/x/v2/account/mine(/ipad)?? response-body-json-jq jq-path="https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/jq/bilibili.mine.jq"
 ^https://app.bilibili.com/x/v2/splash/(show|event/list2)? response-body-json-jq '.data |= with_entries(if .key | IN("show", "event_list") then .value = [] else . end)'
 ^https://app.bilibili.com/x/v2/account/myinfo? response-body-json-jq '.data.vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end'
