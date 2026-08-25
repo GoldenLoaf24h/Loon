@@ -9,11 +9,18 @@
 #!tag = 哔哩哔哩,去广告,增强
 
 [Argument]
+# === 1. 核心去广告与空降助手 ===
 displayUpList = select,"auto","show","hide",tag=[动态] 最常访问展示方式,desc=auto：仅有直播时显示；show：始终显示；hide：始终隐藏
 purifyComment = switch,true,tag=[评论区] 过滤置顶评论广告,desc=移除评论区顶部的广告与商品推广卡片
 optimizeRequest = switch,true,tag=[网络] 优化评论区请求,desc=精简评论区下行数据体积，提升加载速度
 sponsorBlock = switch,true,tag=[视频] 启用空降助手,desc=自动跳过视频内嵌的片头/恰饭广告片段
 logLevel = select,"off","error","warn","info","debug",tag=[调试] 脚本日志等级,desc=控制控制台日志输出详略程度
+
+# === 2. 全球模式与番剧解锁策略 ===
+Group = input,"Bilibili",tag=[全球] B站分流策略组名称,desc=请填入您 Loon 配置文件中用于 B站 分流的策略组名称（如 Bilibili 或 PROXY）
+Proxies.HKG = input,"香港节点",tag=[全球] 香港节点/策略名称,desc=请填入您的香港节点或香港策略组名称
+Proxies.TWN = input,"台湾节点",tag=[全球] 台湾节点/策略名称,desc=请填入您的台湾节点或台湾策略组名称
+Proxies.CHN = input,"DIRECT",tag=[全球] 大陆直连策略名称,desc=大陆直连策略名称（默认 DIRECT）
 
 [Rule]
 DOMAIN,bsbsb.top,PROXY
@@ -24,11 +31,11 @@ DOMAIN,app.biliapi.net,REJECT
 AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYWORD,tracker), (DOMAIN-KEYWORD,p2p)))),REJECT
 
 [Rewrite]
-# 1. 直播间带货与游戏推广拦截
+# 直播间带货与游戏推广拦截
 ^https://api.live.bilibili.com/xlive/e-commerce-interface/v1/ecommerce-user/get_shopping_info? reject-dict
 ^https://line3-h5-mobile-api.biligame.com/game/live/large_card_material? reject-dict
 
-# 2. 开屏广告秒开与活动弹窗 Mock
+# 开屏广告秒开与活动弹窗 Mock
 ^https://app.bilibili.com/x/v2/splash/list? mock-response-body data-type=text status-code=200 data="{\"code\":0,\"message\":\"OK\",\"ttl\":1,\"data\":{\"max_time\":0,\"min_interval\":31536000,\"pull_interval\":31536000,\"keep_ids\":[],\"show\":[],\"list\":[{}],\"splash_request_id\":\"\"}}"
 ^https://ap[ip].bilibili.com/x/(resource/(top/activity|patch/tab(/v2)?)|v2/search/square|vip/ads/materials)? mock-response-body data-type=text status-code=200 data="{\"code\":-404,\"message\":\"-404\",\"ttl\":1,\"data\":null}"
 ^https://api.bilibili.com/pgc/activity/deliver/material/receive? mock-response-body data-type=text status-code=200 data="{\"code\":0,\"data\":{\"closeType\":\"close_win\",\"container\":[],\"showTime\":\"\"},\"message\":\"success\"}"
@@ -37,13 +44,13 @@ AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYW
 ^https://grpc.biliapi.net/bilibili.app.(view.v1.View/TFInfo|viewunite.v1.View/(PlayPause|ViewEndPage))$ mock-response-body data-type=text data="AAAAAAA=" mock-data-is-base64=true
 ^https://grpc.biliapi.net/bilibili.app.(interface.v1.(Teenagers/ModeStatus|Search/DefaultWords)|view.v1.View/TFInfo|viewunite.v1.View/(PlayPause|ViewEndPage))$ response-header-add grpc-status 0
 
-# 3. P2P 与 Tracker 净化
+# P2P 与 Tracker 净化
 ^https://api.live.bilibili.com/xlive/open-interface/v2/tracker/conf? response-body-json-jq '.data.domains=["wss://tracker.chat.bilibili.com"]'
 ^https://api.bilibili.com/x/pd-proxy/tracker? response-body-json-jq '.data[][]?="stun.chat.bilibili.com:3478"'
 ^https://api.bilibili.com/pgc/view/v2/app/season? response-body-json-jq 'del(.data.payment)'
 ^https://api.bilibili.com/pgc/page/channel? response-body-json-jq '.data.modules |= map(select(.type != "TIP") | if .type == "BANNER" then .module_data.items |= map(select(.url | startswith("https://www.bilibili.com/blackboard/era/") | not)) else . end)'
 
-# 4. UI 精简与极简双底栏（首页 + 我的）
+# UI 精简与极简双底栏（首页 + 我的）
 ^https://app.bilibili.com/x/resource/show/skin? response-body-json-del data.common_equip
 ^https://app.bilibili.com/x/resource/show/tab/v2? response-body-json-jq jq-path="https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/bilibili_tab.jq"
 ^https://app.bilibili.com/x/v2/account/mine(/ipad)?? response-body-json-jq jq-path="https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/jq/bilibili.mine.jq"
@@ -51,9 +58,9 @@ AND,((DOMAIN-SUFFIX,chat.bilibili.com), (OR,((DOMAIN-KEYWORD,stun), (DOMAIN-KEYW
 ^https://app.bilibili.com/x/v2/account/myinfo? response-body-json-jq '.data.vip |= if . != null and .status == 0 then . + { status: 1, type: 2, due_date: 9005270400000, role: 15 } else . end'
 
 [Script]
-# === 1. 港澳台自动换区与全区搜索 (NobyDa 原生轻量引擎，零冲突) ===
-http-response ^https://(api|app).bilibili.com/pgc/view/v2/app/season? script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/Bili_Auto_Regions.js, requires-body=true, tag=bilibili.auto_regions
-http-request ^https://app.bilibili.com/x/v2/search(/type)??.+?(%20|+)(%E6%B8%AF|%E5%8F%B0|%E4%B8%AD|hk|tw|th|sea)& script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/Bili_Auto_Regions.js, requires-body=true, tag=bilibili.auto_search
+# === 1. 港澳台自动换区与全区搜索 (双向匹配：hk 关键词 / 关键词 港 均可自动识别) ===
+http-response ^https://(api|app).bilibili.com/pgc/view/v2/app/season? script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/Bili_Auto_Regions.js, requires-body=true, tag=bilibili.auto_regions, argument=[Group={Group}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Proxies.CHN={Proxies.CHN}]
+http-request ^https://app.bilibili.com/x/v2/search(/type)??.+ script-path=https://raw.githubusercontent.com/GoldenLoaf24h/Loon/main/Script/Bili_Auto_Regions.js, requires-body=true, tag=bilibili.auto_search, argument=[Group={Group}&Proxies.HKG={Proxies.HKG}&Proxies.TWN={Proxies.TWN}&Proxies.CHN={Proxies.CHN}]
 
 # === 2. 可莉/Sparkle 核心 ProtoBuf 去广告与空降助手 (实时同步 master) ===
 http-request ^https://(grpc.biliapi.net|app.bilibili.com)/bilibili.community\.service\.dm\.v1\.DM/DmSegMobile$ script-path=https://raw.githubusercontent.com/kokoryh/Sparkle/refs/heads/master/dist/bilibili.protobuf.request.js, argument=[{logLevel}], requires-body=true, binary-body-mode=true, timeout=10, enable={sponsorBlock}, tag=bilibili.airborne
